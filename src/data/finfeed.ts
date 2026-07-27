@@ -5,6 +5,8 @@ export interface Stock {
   name: string;
   market: "KR" | "US";
   sector: string;
+  price: number;
+  changePct: number;
 }
 
 export interface Holding {
@@ -24,20 +26,27 @@ export interface NewsItem {
   impactScore: number; // 0-100
   impact: string;
   advice: { value: string; trader: string };
+  scenario: { value: string; trader: string };
 }
 
 export const STOCK_UNIVERSE: Stock[] = [
-  { ticker: "005930", name: "삼성전자", market: "KR", sector: "반도체" },
-  { ticker: "000660", name: "SK하이닉스", market: "KR", sector: "반도체" },
-  { ticker: "373220", name: "LG에너지솔루션", market: "KR", sector: "2차전지" },
-  { ticker: "005380", name: "현대차", market: "KR", sector: "자동차" },
-  { ticker: "035420", name: "NAVER", market: "KR", sector: "인터넷" },
-  { ticker: "207940", name: "삼성바이오로직스", market: "KR", sector: "바이오" },
-  { ticker: "NVDA", name: "NVIDIA", market: "US", sector: "반도체" },
-  { ticker: "AAPL", name: "Apple", market: "US", sector: "IT 하드웨어" },
-  { ticker: "TSLA", name: "Tesla", market: "US", sector: "전기차" },
-  { ticker: "MSFT", name: "Microsoft", market: "US", sector: "소프트웨어" },
+  { ticker: "005930", name: "삼성전자", market: "KR", sector: "반도체", price: 72000, changePct: 1.8 },
+  { ticker: "000660", name: "SK하이닉스", market: "KR", sector: "반도체", price: 183500, changePct: -0.7 },
+  { ticker: "373220", name: "LG에너지솔루션", market: "KR", sector: "2차전지", price: 341000, changePct: -2.4 },
+  { ticker: "005380", name: "현대차", market: "KR", sector: "자동차", price: 248500, changePct: 2.1 },
+  { ticker: "035420", name: "NAVER", market: "KR", sector: "인터넷", price: 196400, changePct: 1.2 },
+  { ticker: "207940", name: "삼성바이오로직스", market: "KR", sector: "바이오", price: 812000, changePct: 0.4 },
+  { ticker: "NVDA", name: "NVIDIA", market: "US", sector: "반도체", price: 121.34, changePct: -1.6 },
+  { ticker: "AAPL", name: "Apple", market: "US", sector: "IT 하드웨어", price: 227.18, changePct: 0.9 },
+  { ticker: "TSLA", name: "Tesla", market: "US", sector: "전기차", price: 244.72, changePct: -0.3 },
+  { ticker: "MSFT", name: "Microsoft", market: "US", sector: "소프트웨어", price: 418.55, changePct: 0.6 },
 ];
+
+export function formatQuote(stock: Stock): string {
+  return stock.market === "KR"
+    ? `${stock.price.toLocaleString("ko-KR")}원`
+    : `$${stock.price.toFixed(2)}`;
+}
 
 export const DEFAULT_HOLDINGS: Holding[] = [
   { ticker: "005930", weight: 38 },
@@ -66,6 +75,10 @@ export const NEWS: NewsItem[] = [
       value: "구조적 실적 개선 초입 구간으로 판단됩니다. 비중이 높은 핵심 종목인 만큼 추가 매수보다 보유 유지가 무난합니다.",
       trader: "발표 직후 갭 상승 가능성이 큽니다. 시초가 추격보다 눌림목 분할 대응이 유리합니다.",
     },
+    scenario: {
+      value: "오늘은 매매 없이 보유 유지, 3분기 HBM 공급 계약 공시만 체크하세요.",
+      trader: "시초가 급등 시 관망 → 장중 -1.5% 눌림목에서 30% 분할 매수, 손절 -3%.",
+    },
   },
   {
     id: "n2",
@@ -85,6 +98,10 @@ export const NEWS: NewsItem[] = [
     advice: {
       value: "장기 AI 수요 훼손 이슈는 아니므로 급락 시 분할 매수 관점이 유효합니다.",
       trader: "규제 헤드라인은 변동성이 큽니다. 보유 비중 27%로 높아 일부 차익 실현 후 재진입을 검토하세요.",
+    },
+    scenario: {
+      value: "급락 시 보유 비중 30%까지 분할 매수, 오늘은 1차 매수만 집행하세요.",
+      trader: "장 초반 반등 시 보유분 1/3 차익 실현 후 규제 세부안 발표까지 현금 대기.",
     },
   },
   {
@@ -106,6 +123,10 @@ export const NEWS: NewsItem[] = [
       value: "전기차 수요 회복 확인 전까지는 비중 확대를 유보하는 편이 좋습니다.",
       trader: "수급 이탈 구간입니다. 손절 라인을 명확히 두고 대응하세요.",
     },
+    scenario: {
+      value: "추가 매수 보류, 4분기 AMPC 인식 가이던스 확인 후 재평가하세요.",
+      trader: "전일 저가 이탈 시 전량 손절, 반등해도 5일선 회복 전까지 재진입 금지.",
+    },
   },
   {
     id: "n4",
@@ -125,6 +146,10 @@ export const NEWS: NewsItem[] = [
     advice: {
       value: "저평가 국면에서의 실적 턴어라운드 신호로, 비중 확대를 고려할 만합니다.",
       trader: "실적 발표 전까지 기대감 랠리가 나올 수 있습니다. 이벤트 전 청산 전략을 권합니다.",
+    },
+    scenario: {
+      value: "비중 15% → 20%까지 오늘 종가 부근에서 절반 분할 매수하세요.",
+      trader: "장중 강세 지속 시 보유, 실적 발표 전일 종가에 전량 청산 계획을 세우세요.",
     },
   },
   {
@@ -146,6 +171,10 @@ export const NEWS: NewsItem[] = [
       value: "사이클 중후반 신호를 점검할 시점입니다. 신규 진입은 서두르지 마세요.",
       trader: "박스권 대응이 적절합니다. 이벤트 드리븐 매매로 접근하세요.",
     },
+    scenario: {
+      value: "신규 진입 보류, 11월 고정가 발표까지 관망하세요.",
+      trader: "박스 하단 근처 단기 매수 · 상단 도달 시 즉시 청산, 목표 수익 3%.",
+    },
   },
   {
     id: "n6",
@@ -165,6 +194,10 @@ export const NEWS: NewsItem[] = [
     advice: {
       value: "배당 매력과 실적이 함께 개선되는 구간으로 장기 보유에 적합합니다.",
       trader: "관심종목이지만 미보유 상태입니다. 돌파 확인 후 진입을 고려하세요.",
+    },
+    scenario: {
+      value: "배당 기준일 전 소량 신규 편입(5%)을 검토하세요.",
+      trader: "직전 고점 돌파·거래량 동반 확인 시에만 진입, 미돌파면 오늘은 패스.",
     },
   },
   {
@@ -186,6 +219,10 @@ export const NEWS: NewsItem[] = [
       value: "마진 지표 확인 전까지 관망이 합리적입니다.",
       trader: "이벤트 소멸 후 변동성 축소 가능성. 단기 트레이딩 매력은 낮습니다.",
     },
+    scenario: {
+      value: "관망 유지, 다음 분기 마진 지표 발표까지 액션 없음.",
+      trader: "오늘은 진입하지 말고 변동성 확대 신호(거래량 급증) 나올 때만 대응하세요.",
+    },
   },
   {
     id: "n8",
@@ -205,6 +242,10 @@ export const NEWS: NewsItem[] = [
     advice: {
       value: "안정적 현금흐름 기반 코어 자산으로 유지 전략이 적합합니다.",
       trader: "변동성이 낮아 단기 트레이딩 대상으로는 매력이 크지 않습니다.",
+    },
+    scenario: {
+      value: "코어 자산으로 보유 유지, 조정 시 분할 매수 대기 주문만 걸어두세요.",
+      trader: "단기 모멘텀 부재로 오늘은 매매 대상에서 제외하세요.",
     },
   },
 ];
