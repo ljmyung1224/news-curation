@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 import { BriefingBar } from "@/components/finfeed/BriefingBar";
 import { NewsCard } from "@/components/finfeed/NewsCard";
 import { WatchlistPanel } from "@/components/finfeed/WatchlistPanel";
@@ -43,6 +44,7 @@ function Index() {
   const [holdings, setHoldings] = useState<Holding[]>(DEFAULT_HOLDINGS);
   const [style, setStyle] = useState<"value" | "trader">("value");
   const [filter, setFilter] = useState<Sentiment | "all">("all");
+  const { user, signOut } = useAuth();
 
   const watched = useMemo(() => NEWS.filter((n) => watchlist.includes(n.ticker)), [watchlist]);
   const feed = useMemo(
@@ -82,6 +84,26 @@ function Index() {
             <span className="rounded-full border border-border bg-surface-2 px-3 py-1.5">
               {style === "value" ? "가치투자" : "단기매매"} 모드
             </span>
+            {user ? (
+              <>
+                <span className="hidden rounded-full border border-border bg-surface-2 px-3 py-1.5 sm:inline">
+                  {user.email}
+                </span>
+                <button
+                  onClick={() => void signOut()}
+                  className="rounded-full border border-border bg-surface-2 px-3 py-1.5 font-semibold hover:text-foreground"
+                >
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/auth"
+                className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 font-semibold text-primary"
+              >
+                로그인
+              </Link>
+            )}
           </nav>
         </div>
       </header>
