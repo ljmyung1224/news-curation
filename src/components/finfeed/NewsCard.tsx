@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { SentimentBadge } from "./SentimentBadge";
-import type { NewsItem, Stock } from "@/data/finfeed";
+import { formatQuote, type NewsItem, type Stock } from "@/data/finfeed";
 
 interface Props {
   news: NewsItem;
@@ -11,6 +11,7 @@ interface Props {
 
 export function NewsCard({ news, stock, weight, style }: Props) {
   const [open, setOpen] = useState(false);
+  const up = stock.changePct >= 0;
 
   return (
     <article className="rounded-2xl border border-border bg-card p-5 shadow-card transition-colors hover:border-primary/40">
@@ -23,11 +24,23 @@ export function NewsCard({ news, stock, weight, style }: Props) {
         <span>{news.source}</span>
         <span>·</span>
         <span>{news.publishedAt}</span>
-        {weight !== undefined && (
-          <span className="ml-auto rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 font-semibold text-primary">
-            보유 {weight}%
+        <span className="ml-auto flex items-center gap-2">
+          {weight !== undefined && (
+            <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 font-semibold text-primary">
+              보유 {weight}%
+            </span>
+          )}
+          <span
+            className={`rounded-md border px-2 py-0.5 font-mono font-semibold ${
+              up
+                ? "border-bullish/30 bg-bullish/10 text-bullish"
+                : "border-bearish/30 bg-bearish/10 text-bearish"
+            }`}
+          >
+            {formatQuote(stock)} {up ? "+" : ""}
+            {stock.changePct.toFixed(1)}%
           </span>
-        )}
+        </span>
       </div>
 
       <h3 className="mt-3 text-lg font-bold leading-snug">{news.title}</h3>
@@ -79,6 +92,12 @@ export function NewsCard({ news, stock, weight, style }: Props) {
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-accent">개인화 제언</p>
             <p className="mt-1 text-sm text-foreground/90">{news.advice[style]}</p>
+            <div className="mt-3 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2">
+              <p className="text-xs font-semibold text-accent">
+                오늘의 대응 시나리오 · {style === "value" ? "가치투자" : "단기매매"}
+              </p>
+              <p className="mt-1 text-sm font-medium text-foreground">{news.scenario[style]}</p>
+            </div>
             {weight !== undefined && weight >= 25 && (
               <p className="mt-2 rounded-lg bg-primary/10 px-3 py-2 text-xs text-primary">
                 포트폴리오 비중 {weight}%로 집중도가 높습니다. 단기 변동성에 유의하세요.
