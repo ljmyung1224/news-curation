@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Heart } from "lucide-react";
 import { SentimentBadge } from "./SentimentBadge";
 import { formatQuote, type NewsItem, type Stock } from "@/data/finfeed";
 
@@ -7,17 +8,27 @@ interface Props {
   stock: Stock;
   weight?: number;
   style: "value" | "trader";
+  watched: boolean;
+  onToggleWatch: () => void;
 }
 
-export function NewsCard({ news, stock, weight, style }: Props) {
+export function NewsCard({ news, stock, weight, style, watched, onToggleWatch }: Props) {
   const [open, setOpen] = useState(false);
   const up = stock.changePct >= 0;
 
   return (
     <article className="rounded-2xl border border-border bg-card p-5 shadow-card transition-colors hover:border-primary/40">
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <span className="rounded-md bg-surface-2 px-2 py-0.5 font-semibold text-foreground">
+        <span className="flex items-center gap-1.5 rounded-md bg-surface-2 px-2 py-0.5 font-semibold text-foreground">
           {stock.name}
+          <button
+            onClick={onToggleWatch}
+            aria-label={`${stock.name} 관심 종목 ${watched ? "해제" : "추가"}`}
+            aria-pressed={watched}
+            className={watched ? "text-bearish" : "text-muted-foreground hover:text-bearish"}
+          >
+            <Heart size={12} fill={watched ? "currentColor" : "none"} />
+          </button>
         </span>
         <span className="font-mono">{stock.ticker}</span>
         <span>·</span>

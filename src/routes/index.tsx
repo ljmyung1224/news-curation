@@ -1,9 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { Settings } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { STYLE_LABEL, useProfile } from "@/hooks/use-profile";
 import { BriefingBar } from "@/components/finfeed/BriefingBar";
 import { NewsCard } from "@/components/finfeed/NewsCard";
 import { WatchlistPanel } from "@/components/finfeed/WatchlistPanel";
+import { OnboardingModal } from "@/components/finfeed/OnboardingModal";
+import { SettingsModal } from "@/components/finfeed/SettingsModal";
+import { BrokerPortfolio } from "@/components/finfeed/BrokerPortfolio";
 import {
   DEFAULT_HOLDINGS,
   NEWS,
@@ -38,32 +43,49 @@ const FILTERS: { key: Sentiment | "all"; label: string }[] = [
 ];
 
 function Index() {
-  const [watchlist, setWatchlist] = useState<string[]>(
-    DEFAULT_HOLDINGS.map((h) => h.ticker).concat("000660", "005380"),
-  );
   const [holdings, setHoldings] = useState<Holding[]>(DEFAULT_HOLDINGS);
-  const [style, setStyle] = useState<"value" | "trader">("value");
   const [filter, setFilter] = useState<Sentiment | "all">("all");
+  const [tab, setTab] = useState<"watch" | "all">("watch");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const {
+    profile,
+    hydrated,
+    setStyle,
+    completeOnboarding,
+    toggleWatch,
+    connectBroker,
+    disconnectBroker,
+  } = useProfile();
+
+  const { watchlist, style } = profile;
 
   const watched = useMemo(() => NEWS.filter((n) => watchlist.includes(n.ticker)), [watchlist]);
+  const source = tab === "watch" ? watched : NEWS;
   const feed = useMemo(
     () =>
-      [...watched]
+      [...source]
         .filter((n) => filter === "all" || n.sentiment === filter)
         .sort((a, b) => b.impactScore - a.impactScore),
-    [watched, filter],
+    [source, filter],
   );
-
-  const toggle = (ticker: string) =>
-    setWatchlist((prev) =>
-      prev.includes(ticker) ? prev.filter((t) => t !== ticker) : [...prev, ticker],
-    );
 
   const activeHoldings = holdings.filter((h) => watchlist.includes(h.ticker));
 
   return (
     <div className="min-h-screen bg-hero-gradient">
+      {hydrated && !profile.onboarded && <OnboardingModal onComplete={completeOnboarding} />}
+      {settingsOpen && (
+        <SettingsModal
+          style={style}
+          broker={profile.broker}
+          onStyle={setStyle}
+          onConnect={connectBroker}
+          onDisconnect={disconnectBroker}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
+
       <header className="border-b border-border/60 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-5 py-5">
           <div className="flex items-center gap-3">
@@ -82,8 +104,14 @@ function Index() {
               관심 {watchlist.length}종목
             </span>
             <span className="rounded-full border border-border bg-surface-2 px-3 py-1.5">
-              {style === "value" ? "가치투자" : "단기매매"} 모드
+              {STYLE_LABEL[style]} 모드
             </span>
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-3 py-1.5 font-semibold hover:text-foreground"
+            >
+              <Settings size={13} /> 내 정보·설정
+            </button>
             {user ? (
               <>
                 <span className="hidden rounded-full border border-border bg-surface-2 px-3 py-1.5 sm:inline">
@@ -119,13 +147,18 @@ function Index() {
           </p>
         </section>
 
+        <div className="mb-6">
+          <BrokerPortfolio
+            connected={profile.broker.connected}
+            onOpenSettings={() => setSettingsOpen(true)}
+          />
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
           <WatchlistPanel
             watchlist={watchlist}
             holdings={activeHoldings}
-            style={style}
-            onToggle={toggle}
-            onStyle={setStyle}
+            onToggle={toggleWatch}
             onWeight={(ticker, weight) =>
               setHoldings((prev) => prev.map((h) => (h.ticker === ticker ? { ...h, weight } : h)))
             }
@@ -133,6 +166,27 @@ function Index() {
 
           <div className="space-y-5">
             <BriefingBar news={watched} />
+
+            <div className="flex gap-2 rounded-xl border border-border bg-surface-2 p-1">
+              {(
+                [
+                  { key: "watch", label: `❤️ 관심 종목 (${watched.length})` },
+                  { key: "all", label: "전체 뉴스" },
+                ] as const
+              ).map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                    tab === t.key
+                      ? "bg-primary/15 text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
 
             <div className="flex flex-wrap items-center gap-2">
               {FILTERS.map((f) => (
@@ -158,6 +212,8 @@ function Index() {
                 stock={STOCK_UNIVERSE.find((s) => s.ticker === n.ticker)!}
                 weight={activeHoldings.find((h) => h.ticker === n.ticker)?.weight}
                 style={style}
+                watched={watchlist.includes(n.ticker)}
+                onToggleWatch={() => toggleWatch(n.ticker)}
               />
             ))}
 

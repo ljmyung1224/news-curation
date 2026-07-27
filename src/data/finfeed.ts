@@ -255,3 +255,62 @@ export const SENTIMENT_LABEL: Record<Sentiment, string> = {
   negative: "악재",
   neutral: "중립",
 };
+
+export interface BrokerPosition {
+  ticker: string;
+  name: string;
+  quantity: number;
+  avgPrice: number;
+  currentPrice: number;
+  weight: number; // 보유 비중 %
+  returnPct: number; // 수익률 %
+}
+
+/** 한국투자증권 Open API 연동 시 반환되는 잔고 응답을 모사한 데모 데이터 */
+export const BROKER_PORTFOLIO: BrokerPosition[] = [
+  {
+    ticker: "005930",
+    name: "삼성전자",
+    quantity: 320,
+    avgPrice: 64800,
+    currentPrice: 72000,
+    weight: 34.2,
+    returnPct: 11.1,
+  },
+  {
+    ticker: "000660",
+    name: "SK하이닉스",
+    quantity: 45,
+    avgPrice: 158000,
+    currentPrice: 183500,
+    weight: 22.5,
+    returnPct: 16.1,
+  },
+  {
+    ticker: "373220",
+    name: "LG에너지솔루션",
+    quantity: 18,
+    avgPrice: 392000,
+    currentPrice: 341000,
+    weight: 18.4,
+    returnPct: -13.0,
+  },
+  {
+    ticker: "035420",
+    name: "NAVER",
+    quantity: 52,
+    avgPrice: 178200,
+    currentPrice: 196400,
+    weight: 15.1,
+    returnPct: 10.2,
+  },
+  {
+    ticker: "005380",
+    name: "현대차",
+    quantity: 20,
+    avgPrice: 262000,
+    currentPrice: 248500,
+    weight: 9.8,
+    returnPct: -5.2,
+  },
+];
